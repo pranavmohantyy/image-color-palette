@@ -1,15 +1,1 @@
-from PIL import Image
-from collections import Counter
-
-def get_dominant_colors(image_path, num_colors=5):
-    image = Image.open(image_path)
-    image = image.resize((100, 100))
-    pixels = list(image.getdata())
-    pixel_counts = Counter(pixels)
-    most_common = pixel_counts.most_common(num_colors)
-    hex_colors = ["#{:02x}{:02x}{:02x}".format(*color) for color, _ in most_common]
-    return hex_colors
-
-if __name__ == '__main__':
-    colors = get_dominant_colors('path/to/image.jpg')
-    print(colors)
+from PIL import Image\nimport numpy as np\nfrom collections import Counter\n\ndef get_dominant_colors(image_path, num_colors=5):\n    image = Image.open(image_path)\n    image = image.resize((100, 100))\n    pixels = np.array(image).reshape(-1, 3)\n    pixels = pixels / 255.0\n    centers = pixels[np.random.choice(pixels.shape[0], num_colors, replace=False)]\n    for _ in range(10):\n        distances = np.linalg.norm(pixels[:, np.newaxis] - centers, axis=2)\n        labels = np.argmin(distances, axis=1)\n        for i in range(num_colors):\n            if np.any(labels == i):\n                centers[i] = np.mean(pixels[labels == i], axis=0)\n    hex_colors = ["#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255)) for r, g, b in centers]  \n    return hex_colors\n\nif __name__ == '__main__':\n    colors = get_dominant_colors('path/to/image.jpg')\n    print(colors)
